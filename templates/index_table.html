@@ -1,7 +1,7 @@
 
 <div class="col-sm-12">
     <a href="" style="width:200px" class="btn btn-info btn-block btn-lg"><span class="fa fa-pencil"></span> Input Data Pegawai</a>
-
+    {{counter[0]}}
     <br>
     <table class="table datatable">
         <thead>
@@ -15,9 +15,17 @@
             </tr>
         </thead>
         <tbody>
-        
+            
             {% for peg in pegawais %}
-                <tr>
+                <tr 
+                {% if counter[(loop.index)-1] > 7 %} 
+                    class="info"
+                    {% elif counter[(loop.index-1)] > 1 and counter[(loop.index)-1] < 7 %}
+                    class="warning"
+                    {% else %}
+                    class="danger"
+                {% endif %}
+                >
                     <td>{{loop.index}}</td>
                     <td>{{peg['nama']}}</td>
                     <td>{{peg['nip']}}</td>
@@ -29,8 +37,6 @@
                         class="btn btn-sm btn-danger btn-rounded" href="">&nbsp;&nbsp;<i class="fa fa-trash-o"></i></a>
                     </td>
                 </tr>
-        
-        
             {% endfor %}
         </tbody>
     </table>
