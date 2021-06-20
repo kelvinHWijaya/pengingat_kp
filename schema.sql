@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS posts;
+
+CREATE TABLE pegawai (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama TEXT NOT NULL,
+    nip TEXT NOT NULL,
+    kp_terakhir DATE NOT NULL,
+    kp_berikut DATE NOT NULL
+);
