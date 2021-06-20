@@ -1,0 +1,37 @@
+
+<div class="col-sm-12">
+    <a href="" style="width:200px" class="btn btn-info btn-block btn-lg"><span class="fa fa-pencil"></span> Input Data Pegawai</a>
+
+    <br>
+    <table class="table datatable">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>NIK</th>
+                <th>KP Terakhir</th>
+                <th>KP Selanjutnya</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+        
+            {% for peg in pegawais %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{peg['nama']}}</td>
+                    <td>{{peg['nip']}}</td>
+                    <td>{{peg['kp_terakhir']}}</td>
+                    <td>{{peg['kp_berikut']}}</td>
+                    <td><a data-toggle="tooltip" data-placement="top" title="Edit Data Pegawai" 
+                        class="btn btn-sm btn-warning btn-rounded" href="">&nbsp;&nbsp;<i class="fa fa-edit"></i></a>
+                        <a data-toggle="tooltip" data-placement="top" title="Hapus Data Pegawai" 
+                        class="btn btn-sm btn-danger btn-rounded" href="">&nbsp;&nbsp;<i class="fa fa-trash-o"></i></a>
+                    </td>
+                </tr>
+        
+        
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
