@@ -1,6 +1,7 @@
 import sqlite3
-from flask import Flask, render_template
-from datetime import datetime
+from flask import Flask, render_template, request, url_for, flash, redirect
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 import requests
 
 
@@ -13,7 +14,7 @@ def days_between(d1, d2):
     d1 = datetime.strptime(d1, "%Y-%m-%d")
     d2 = datetime.strptime(d2, "%Y-%m-%d")
     print(d2)
-    return abs((d2 - d1).days)
+    return (d2 - d1).days
 
 def telegram_bot_sendtext(bot_message):
    bot_token = '1851192408:AAGnbb4I2G8Z5T45-NvfdqtxaiVi-MFcaUE'
@@ -31,19 +32,66 @@ app = Flask(__name__)
 def index():
     conn = get_db_connection()
     pegawais = conn.execute('SELECT * FROM pegawai').fetchall()
-    list_peg = [list(i) for i in pegawais]
     today = datetime.today().strftime('%Y-%m-%d')
     counter=[]
+    notif=0
     bell_notif=0
     x=0
     for i in pegawais:
         counter.append(days_between(today,i['kp_berikut']))
         if counter[x] <= 7 :
             bell_notif+=1
-        if counter[x] <= 1 and counter[x] > -1 :
+        if counter[x] <= 1 and counter[x] > -1 and notif == 1:
             message='Kenaikan Pangkat a.n '+ i['nama'] +' NIP : '+ i['nip']
             telegram_bot_sendtext(message)
+        if counter[x] <= -1:
+            next_kp = datetime.strptime(i['kp_berikut'],'%Y-%m-%d').date() + relativedelta(years=4)
+            conn = get_db_connection()
+            conn.execute('UPDATE pegawai SET kp_terakhir = ?, kp_berikut = ?'
+                         ' WHERE id = ?',
+                         (i['kp_berikut'], next_kp, i['id']))
+            conn.commit()
+            conn.close()
         x+=1
 
     conn.close()
-    return render_template('index.html',bell=bell_notif,counter=counter,pegawais=pegawais)
+    return render_template('index.html',bell_notif=bell_notif,counter=counter,pegawais=pegawais)
+
+@app.route('/create', methods=('GET', 'POST'))
+def create():
+    nama = request.form['nama']
+    nip = request.form['nip']
+    kp_terakhir = request.form['kp_terakhir']
+    kp_berikut = request.form['kp_berikut']
+
+    conn = get_db_connection()
+    conn.execute('INSERT INTO pegawai (nama, nip, kp_terakhir, kp_berikut) VALUES (?, ?, ?, ?)',
+                    (nama, nip, kp_terakhir, kp_berikut))
+    conn.commit()
+    conn.close()        
+    return redirect(url_for('index'))
+
+@app.route('/<int:id>/edit', methods=('GET', 'POST'))
+def edit(id):
+    
+    nama = request.form['edit_nama']
+    nip = request.form['edit_nip']
+    kp_terakhir = request.form['edit_kp_terakhir']
+    kp_berikut = request.form['edit_kp_berikut']
+
+    conn = get_db_connection()
+    conn.execute('UPDATE pegawai SET nama = ?, nip = ?,kp_terakhir = ?, kp_berikut = ?'
+                    ' WHERE id = ?',
+                    (nama, nip, kp_terakhir, kp_berikut, id))
+    conn.commit()
+    conn.close()        
+    return redirect(url_for('index'))
+
+@app.route('/<int:id>/delete', methods=('GET', 'POST'))
+def delete(id):
+    
+    conn = get_db_connection()
+    conn.execute('DELETE from pegawai WHERE id = ?',(id,))
+    conn.commit()
+    conn.close()        
+    return redirect(url_for('index'))
