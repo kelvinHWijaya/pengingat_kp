@@ -16,5 +16,9 @@ cur.execute("INSERT INTO pegawai (nama, nip, kp_terakhir, kp_berikut) VALUES (?,
             ('Jane Doe', '198401012012022040', '2016-02-12','2020-02-12')
             )
 
+cur.execute("INSERT INTO admin (username, password) VALUES (?, ?)",
+('admin', 'admin')
+)
+
 connection.commit()
 connection.close()

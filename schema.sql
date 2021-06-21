@@ -7,3 +7,9 @@ CREATE TABLE pegawai (
     kp_terakhir DATE NOT NULL,
     kp_berikut DATE NOT NULL
 );
+
+CREATE TABLE admin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL
+);
