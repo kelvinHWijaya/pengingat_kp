@@ -36,7 +36,7 @@ def index():
         pegawais = conn.execute('SELECT * FROM pegawai').fetchall()
         today = datetime.today().strftime('%Y-%m-%d')
         counter=[]
-        notif=0
+        notif=1
         bell_notif=0
         x=0
         for i in pegawais:
@@ -44,7 +44,7 @@ def index():
             if counter[x] <= 7 :
                 bell_notif+=1
             if counter[x] <= 1 and counter[x] > -1 and notif == 1:
-                message='Kenaikan Pangkat a.n '+ i['nama'] +' NIP : '+ i['nip']
+                message='Kenaikan Pangkat a.n '+ i['nama'] +' NIP : '+ i['nip'] +' tanggal '+ i['kp_berikut']
                 telegram_bot_sendtext(message)
             if counter[x] <= -1:
                 next_kp = datetime.strptime(i['kp_berikut'],'%Y-%m-%d').date() + relativedelta(years=4)
@@ -55,14 +55,11 @@ def index():
                 conn.commit()
                 conn.close()
             x+=1
-
         conn.close()
         return render_template('index.html',bell_notif=bell_notif,counter=counter,pegawais=pegawais)
     else:
         return redirect(url_for('login'))
    
-    
-
 @app.route('/create', methods=('GET', 'POST'))
 def create():
     nama = request.form['nama']
