@@ -1,0 +1,124 @@
+<div class="col-sm-12">
+
+    <button data-toggle="modal" style="width:200px" data-placement="top" title="Edit Data Admin" data-target="#add"
+    class="btn btn-info btn-block btn-lg" href=""><span class="fa fa-pencil"></span> Input Data Admin</button>
+    <br>
+    
+    <table class="table datatable">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>username</th>
+                <th>password</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            {% for adm in admins %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{adm['username']}}</td>
+                    <td>{{adm['password']}}</td>
+                    <td><button data-toggle="modal" data-placement="top" title="Edit Data Admin" data-target="#edit_admin{{loop.index}}"
+                        class="btn btn-sm btn-warning btn-rounded" href="">&nbsp;&nbsp;<i class="fa fa-edit"></i></button>
+                        <button data-toggle="modal" data-placement="top" title="Hapus Data Admin" data-target="#delete_admin{{loop.index}}"
+                        class="btn btn-sm btn-danger btn-rounded" href="">&nbsp;&nbsp;<i class="fa fa-trash-o"></i></button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<div class="modal" id="add" tabindex="-1" role="dialog" aria-labelledby="largeModalHead" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="largeModalHead">Tambah Data Admin</h4>
+            </div>
+
+            <form method="post" class="form-horizontal" action="{{url_for('create_admin')}}">
+
+            <div class="modal-body">
+    
+                Username:<br>
+                <input type="text" class="form-control" name="username">
+                <br>
+                Password:<br>
+                <input type="text" class="form-control" name="password">
+                <br>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-info" >Submit</button>
+            </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% for adm in admins %}
+<div class="modal" id="edit_admin{{loop.index}}" tabindex="-1" role="dialog" aria-labelledby="largeModalHead" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="largeModalHead">Edit Data Admin</h4>
+            </div>
+
+            <form method="post" class="form-horizontal" action="{{ url_for('edit_admin', id=adm['id']) }}">
+
+            <div class="modal-body">
+                <input type="hidden" class="form-control" name="edit_id" value="{{adm['id']}}">
+                Nama:<br>
+                <input type="text" class="form-control" name="edit_username" value="{{adm['username']}}">
+                <br>
+                Password:<br>
+                <input type="text" class="form-control" name="edit_password" value="{{adm['password']}}">
+                <br>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning" >Update</button>
+            </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="delete_admin{{loop.index}}" tabindex="-1" role="dialog" aria-labelledby="largeModalHead" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="largeModalHead">Hapus Data Admin</h4>
+            </div>
+
+            <form method="post" class="form-horizontal" action="{{ url_for('delete_admin', id=adm['id']) }}">
+
+            <div class="modal-body">
+                <input type="hidden" class="form-control" name="hapus_id" value="{{adm['id']}}" disabled>
+                Username:<br>
+                <input type="text" class="form-control" name="hapus_username" value="{{adm['username']}}" disabled>
+                <br>
+                Password:<br>
+                <input type="text" class="form-control" name="hapus_password" value="{{adm['password']}}" disabled>
+                <br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-danger" >Hapus</button>
+            </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endfor %}

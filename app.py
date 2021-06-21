@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, session
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 import requests
@@ -26,36 +26,42 @@ def telegram_bot_sendtext(bot_message):
    return response.json()
 
 app = Flask(__name__)
+app.secret_key = "jjaasasa"
 
 
 @app.route('/')
 def index():
-    conn = get_db_connection()
-    pegawais = conn.execute('SELECT * FROM pegawai').fetchall()
-    today = datetime.today().strftime('%Y-%m-%d')
-    counter=[]
-    notif=0
-    bell_notif=0
-    x=0
-    for i in pegawais:
-        counter.append(days_between(today,i['kp_berikut']))
-        if counter[x] <= 7 :
-            bell_notif+=1
-        if counter[x] <= 1 and counter[x] > -1 and notif == 1:
-            message='Kenaikan Pangkat a.n '+ i['nama'] +' NIP : '+ i['nip']
-            telegram_bot_sendtext(message)
-        if counter[x] <= -1:
-            next_kp = datetime.strptime(i['kp_berikut'],'%Y-%m-%d').date() + relativedelta(years=4)
-            conn = get_db_connection()
-            conn.execute('UPDATE pegawai SET kp_terakhir = ?, kp_berikut = ?'
-                         ' WHERE id = ?',
-                         (i['kp_berikut'], next_kp, i['id']))
-            conn.commit()
-            conn.close()
-        x+=1
+    if session['loggedin'] == True:
+        conn = get_db_connection()
+        pegawais = conn.execute('SELECT * FROM pegawai').fetchall()
+        today = datetime.today().strftime('%Y-%m-%d')
+        counter=[]
+        notif=0
+        bell_notif=0
+        x=0
+        for i in pegawais:
+            counter.append(days_between(today,i['kp_berikut']))
+            if counter[x] <= 7 :
+                bell_notif+=1
+            if counter[x] <= 1 and counter[x] > -1 and notif == 1:
+                message='Kenaikan Pangkat a.n '+ i['nama'] +' NIP : '+ i['nip']
+                telegram_bot_sendtext(message)
+            if counter[x] <= -1:
+                next_kp = datetime.strptime(i['kp_berikut'],'%Y-%m-%d').date() + relativedelta(years=4)
+                conn = get_db_connection()
+                conn.execute('UPDATE pegawai SET kp_terakhir = ?, kp_berikut = ?'
+                            ' WHERE id = ?',
+                            (i['kp_berikut'], next_kp, i['id']))
+                conn.commit()
+                conn.close()
+            x+=1
 
-    conn.close()
-    return render_template('index.html',bell_notif=bell_notif,counter=counter,pegawais=pegawais)
+        conn.close()
+        return render_template('index.html',bell_notif=bell_notif,counter=counter,pegawais=pegawais)
+    else:
+        return redirect(url_for('login'))
+   
+    
 
 @app.route('/create', methods=('GET', 'POST'))
 def create():
@@ -95,3 +101,84 @@ def delete(id):
     conn.commit()
     conn.close()        
     return redirect(url_for('index'))
+
+@app.route('/admin')
+def admin():
+    conn = get_db_connection()
+    admins = conn.execute('SELECT * FROM admin').fetchall()
+    conn.commit()
+    conn.close()
+    return render_template('admin.html',admins=admins)
+
+@app.route('/create_admin', methods=('GET', 'POST'))
+def create_admin():
+    username = request.form['username']
+    password = request.form['password']
+
+    conn = get_db_connection()
+    conn.execute('INSERT INTO admin (username, password) VALUES (?, ?)',
+                    (username, password))
+    conn.commit()
+    conn.close()        
+    return redirect(url_for('admin'))
+
+@app.route('/<int:id>/edit_admin', methods=('GET', 'POST'))
+def edit_admin(id):
+    
+    username = request.form['edit_username']
+    password = request.form['edit_password']
+
+    conn = get_db_connection()
+    conn.execute('UPDATE admin SET username = ?, password = ?'
+                    ' WHERE id = ?',
+                    (username, password, id))
+    conn.commit()
+    conn.close()        
+    return redirect(url_for('admin'))
+
+@app.route('/<int:id>/delete_admin', methods=('GET', 'POST'))
+def delete_admin(id):
+    
+    conn = get_db_connection()
+    conn.execute('DELETE from admin WHERE id = ?',(id,))
+    conn.commit()
+    conn.close()        
+    return redirect(url_for('admin'))
+
+@app.route('/login_post', methods=['POST'])
+def login_post():
+    username = request.form['username']
+    password = request.form['password']
+
+    conn = get_db_connection()
+    admins = conn.execute('SELECT * FROM admin WHERE username= ? AND password= ?',
+    (username, password))
+
+    # return admins
+
+    if admins.fetchone():
+        session['loggedin'] = True
+        session['username'] = username
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+    else:
+        conn.commit()
+        conn.close()
+        login_ = "Gagal"
+        return render_template('login.html',login_=login_)
+    
+    # return render_template('index.html',admins=admins)
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    session['loggedin'] = False
+    return render_template('login.html')
+
+if __name__ == "__main__":
+    app.run(debug=True)
